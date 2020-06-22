@@ -8,9 +8,9 @@ RUN apt-get update && apt-get -qqy install --no-install-recommends \
 
 WORKDIR /root/
 RUN git clone https://github.com/fstiehle/zcash-benchmark
-RUN git checkout benchmark
 
 WORKDIR /root/zcash-benchmark/zcash/
+RUN git checkout benchmark
 
 RUN ./zcutil/fetch-params.sh
 RUN ./zcutil/build.sh -j$(nproc)
