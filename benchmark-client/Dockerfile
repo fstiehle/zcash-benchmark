@@ -12,5 +12,8 @@ RUN git clone https://github.com/fstiehle/zcash-benchmark
 WORKDIR /root/zcash-benchmark/zcash/
 RUN git checkout benchmark
 
-RUN ./zcutil/fetch-params.sh
+RUN ./zcutil/fetch-params.sh 
 RUN ./zcutil/build.sh -j$(nproc)
+
+WORKDIR /root/zcash-benchmark/benchmark-client/
+RUN mkdir -p ~/.zcash && mv zcash.conf zcash.conf ~/.zcash

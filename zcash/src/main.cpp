@@ -54,6 +54,13 @@ using namespace std;
 
 #include "librustzcash.h"
 
+#include <iostream>
+using std::cerr;
+using std::endl;
+#include <fstream>
+using std::ofstream;
+#include <cstdlib>
+
 /**
  * Global state
  */
@@ -4255,6 +4262,21 @@ static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned 
 
 bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, const CNode* pfrom, const CBlock* pblock, bool fForceProcessing, CDiskBlockPos* dbp)
 {
+
+    // BENCHMARK START pblock->GetHash().ToString() | pblock.ToString()
+    // *************************************************************
+    ofstream outdata;
+    outdata.open("data.csv", ofstream::out | ofstream::app); 
+    if(!outdata) { // file couldn't be opened
+        cerr << "Error: Benchmark data file could not be opened" << endl;
+        exit(1);
+    }
+
+    outdata << pblock->GetHash().ToString() << endl;
+    outdata.close();
+
+    // *************************************************************
+
     // Preliminary checks
     auto verifier = libzcash::ProofVerifier::Disabled();
     bool checked = CheckBlock(*pblock, state, chainparams, verifier);
@@ -4280,6 +4302,9 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
 
     if (!ActivateBestChain(state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
+
+    // BENCHMARK END
+    // *************************************************************
 
     return true;
 }
