@@ -16,4 +16,7 @@ RUN ./zcutil/fetch-params.sh
 RUN ./zcutil/build.sh -j$(nproc)
 
 WORKDIR /root/zcash-benchmark/benchmark-client/
-RUN mkdir -p ~/.zcash && mv zcash.conf zcash.conf ~/.zcash
+RUN mkdir -p ~/.zcash && cp zcash.conf ~/.zcash/
+
+WORKDIR /root/zcash-benchmark/zcash/src/
+RUN ./zcashd
