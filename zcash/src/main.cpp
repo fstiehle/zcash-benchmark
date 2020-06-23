@@ -1068,7 +1068,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state,
 
     // BENCHMARK START
     // *************************************************************
-    auto timeStart;
+    std::chrono::time_point<std::chrono::steady_clock> timeStart;
     if (tx.nVersion >= SAPLING_MIN_TX_VERSION) {
         timeStart = std::chrono::steady_clock::now();
     }
@@ -1106,7 +1106,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state,
             exit(1);
         }
 
-        outdata << tx.GetHash().ToString().substr(0,10) << "," << tx.IsCoinBase() << "," tx.nVersion;
+        outdata << tx.GetHash().ToString().substr(0,10) << "," << tx.IsCoinBase() << "," << tx.nVersion;
         outdata << "," << tx.vin.size() << "," << tx.vout.size();
         outdata << "," << tx.vShieldedSpend.size() << "," << tx.vShieldedOutput.size();
         outdata << "," << durationNano << endl;
