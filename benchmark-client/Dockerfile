@@ -20,4 +20,4 @@ RUN mkdir -p ~/.zcash && cp zcash.conf ~/.zcash/
 
 WORKDIR /root/zcash-benchmark/zcash/src/
 
-ENTRYPOINT /bin/bash ./zcashd
+ENTRYPOINT ./zcashd
