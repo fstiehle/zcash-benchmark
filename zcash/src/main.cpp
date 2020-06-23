@@ -4309,7 +4309,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
         exit(1);
     }
 
-    outdata << pblock->GetHash().ToString() + "," + durationNano << endl;
+    outdata << pblock->GetHash().ToString() << "," << durationNano << endl;
     outdata.close();
     // *************************************************************
 

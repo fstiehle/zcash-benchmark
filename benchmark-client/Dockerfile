@@ -19,4 +19,5 @@ WORKDIR /root/zcash-benchmark/benchmark-client/
 RUN mkdir -p ~/.zcash && cp zcash.conf ~/.zcash/
 
 WORKDIR /root/zcash-benchmark/zcash/src/
-RUN ./zcashd
+
+ENTRYPOINT /bin/bash ./zcashd
