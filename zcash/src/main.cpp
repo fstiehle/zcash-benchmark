@@ -1065,6 +1065,15 @@ bool ContextualCheckTransaction(
 bool CheckTransaction(const CTransaction& tx, CValidationState &state,
                       libzcash::ProofVerifier& verifier)
 {
+
+    // BENCHMARK START
+    // *************************************************************
+    auto timeStart;
+    if (tx.nVersion >= SAPLING_MIN_TX_VERSION) {
+        timeStart = std::chrono::steady_clock::now();
+    }
+    // *************************************************************
+
     // Don't count coinbase transactions because mining skews the count
     if (!tx.IsCoinBase()) {
         transactionsValidated.increment();
@@ -1082,6 +1091,28 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state,
         }
         return true;
     }
+
+    // BENCHMARK END
+    // *************************************************************
+    if (tx.nVersion >= SAPLING_MIN_TX_VERSION) {
+        auto timeEnd = std::chrono::steady_clock::now();
+        auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+
+        ofstream outdata;
+
+        outdata.open("data_transactions.csv", ofstream::out | ofstream::app); 
+        if (!outdata) { // file couldn't be opened
+            cerr << "Error: Benchmark data file could not be opened" << endl;
+            exit(1);
+        }
+
+        outdata << tx.GetHash().ToString().substr(0,10) << "," << tx.IsCoinBase() << "," tx.nVersion;
+        outdata << "," << tx.vin.size() << "," << tx.vout.size();
+        outdata << "," << tx.vShieldedSpend.size() << "," << tx.vShieldedOutput.size();
+        outdata << "," << durationNano << endl;
+        outdata.close();
+    }
+    // *************************************************************
 }
 
 bool CheckTransactionWithoutProofVerification(const CTransaction& tx, CValidationState &state)
@@ -4264,12 +4295,6 @@ static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned 
 
 bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, const CNode* pfrom, const CBlock* pblock, bool fForceProcessing, CDiskBlockPos* dbp)
 {
-    // BENCHMARK START
-    // *************************************************************
-    
-    auto timeStart = std::chrono::steady_clock::now();
-    // *************************************************************
-
     // Preliminary checks
     auto verifier = libzcash::ProofVerifier::Disabled();
     bool checked = CheckBlock(*pblock, state, chainparams, verifier);
@@ -4295,23 +4320,6 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
 
     if (!ActivateBestChain(state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
-
-    // BENCHMARK END
-    // *************************************************************
-    auto timeEnd = std::chrono::steady_clock::now();
-    auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-
-    ofstream outdata;
-
-    outdata.open("data.csv", ofstream::out | ofstream::app); 
-    if (!outdata) { // file couldn't be opened
-        cerr << "Error: Benchmark data file could not be opened" << endl;
-        exit(1);
-    }
-
-    outdata << pblock->GetHash().ToString() << "," << durationNano << endl;
-    outdata.close();
-    // *************************************************************
 
     return true;
 }
