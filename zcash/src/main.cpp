@@ -59,10 +59,6 @@ using namespace std;
 #include <cstdlib>
 #include <chrono>
 
-using std::ofstream;
-using std::cerr;
-using std::endl;
-
 /**
  * Global state
  */
@@ -1068,7 +1064,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state,
 
     // BENCHMARK START
     // *************************************************************
-    std::cout << "Enter CheckTransaction";
+    cout << "Enter CheckTransaction" << endl;
     std::chrono::time_point<std::chrono::steady_clock> timeStart;
     timeStart = std::chrono::steady_clock::now();
 
@@ -3975,7 +3971,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state,
                 bool fCheckPOW, bool fCheckMerkleRoot)
 {
 
-    std::cout << "Enter CheckBlock"
+    cout << "Enter CheckBlock" << endl;
 
     // These are checks that are independent of context.
 
