@@ -1069,9 +1069,8 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state,
     // BENCHMARK START
     // *************************************************************
     std::chrono::time_point<std::chrono::steady_clock> timeStart;
-    if (tx.nVersion >= SAPLING_MIN_TX_VERSION) {
-        timeStart = std::chrono::steady_clock::now();
-    }
+    timeStart = std::chrono::steady_clock::now();
+
     // *************************************************************
 
     // Don't count coinbase transactions because mining skews the count
@@ -1094,24 +1093,28 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state,
 
     // BENCHMARK END
     // *************************************************************
-    if (tx.nVersion >= SAPLING_MIN_TX_VERSION) {
-        auto timeEnd = std::chrono::steady_clock::now();
-        auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+    
+    auto timeEnd = std::chrono::steady_clock::now();
+    auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
 
-        ofstream outdata;
+    ofstream outdata;
 
-        outdata.open("data_transactions.csv", ofstream::out | ofstream::app); 
-        if (!outdata) { // file couldn't be opened
-            cerr << "Error: Benchmark data file could not be opened" << endl;
-            exit(1);
-        }
-
-        outdata << tx.GetHash().ToString().substr(0,10) << "," << tx.IsCoinBase() << "," << tx.nVersion;
-        outdata << "," << tx.vin.size() << "," << tx.vout.size();
-        outdata << "," << tx.vShieldedSpend.size() << "," << tx.vShieldedOutput.size();
-        outdata << "," << durationNano << endl;
-        outdata.close();
+    outdata.open("data_transactions.csv", ofstream::out | ofstream::app); 
+    if (!outdata) { // file couldn't be opened
+        cerr << "Error: Benchmark data file could not be opened" << endl;
+        exit(1);
     }
+
+    outdata << tx.GetHash().ToString().substr(0,10) << "," << tx.IsCoinBase() << "," << tx.nVersion;
+    outdata << "," << tx.vin.size() << "," << tx.vout.size();
+
+    if (tx.nVersion >= SAPLING_MIN_TX_VERSION) {
+        outdata << "," << tx.vShieldedSpend.size() << "," << tx.vShieldedOutput.size();
+    }
+    
+    outdata << "," << durationNano << endl;
+    outdata.close();
+    
     // *************************************************************
 }
 
