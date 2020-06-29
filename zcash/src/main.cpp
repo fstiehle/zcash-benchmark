@@ -1068,7 +1068,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state,
 
     // BENCHMARK START
     // *************************************************************
-    std::cout << "Enter CheckTransaction"
+    std::cout << "Enter CheckTransaction";
     std::chrono::time_point<std::chrono::steady_clock> timeStart;
     timeStart = std::chrono::steady_clock::now();
 
