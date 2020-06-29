@@ -782,6 +782,14 @@ bool ContextualCheckTransaction(
         const bool isMined,
         bool (*isInitBlockDownload)(const CChainParams&))
 {
+
+    // BENCHMARK START
+    // *************************************************************
+    auto timeStart = std::chrono::steady_clock::now();
+
+    // *************************************************************
+
+
     const int DOS_LEVEL_BLOCK = 100;
     // DoS level set to 10 to be more forgiving.
     const int DOS_LEVEL_MEMPOOL = 10;
@@ -1054,6 +1062,35 @@ bool ContextualCheckTransaction(
 
         librustzcash_sapling_verification_ctx_free(ctx);
     }
+
+    // BENCHMARK END
+    // *************************************************************
+    
+    auto timeEnd = std::chrono::steady_clock::now();
+    auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+
+    ofstream outdata;
+
+    outdata.open("data_transactions.csv", ofstream::out | ofstream::app); 
+    if (!outdata) { // file couldn't be opened
+        cerr << "Error: Benchmark data file could not be opened" << endl;
+        exit(1);
+    }
+
+    outdata << tx.GetHash().ToString().substr(0,10) << "," << tx.IsCoinBase() << "," << tx.nVersion;
+    outdata << "," << tx.vin.size() << "," << tx.vout.size();
+
+    if (tx.nVersion >= SAPLING_MIN_TX_VERSION) {
+        outdata << "," << tx.vShieldedSpend.size() << "," << tx.vShieldedOutput.size();
+    } else {
+        outdata << "," ",";
+    }
+    
+    outdata << "," << durationNano << endl;
+    outdata.close();
+    
+    // *************************************************************
+
     return true;
 }
 
@@ -1061,12 +1098,6 @@ bool ContextualCheckTransaction(
 bool CheckTransaction(const CTransaction& tx, CValidationState &state,
                       libzcash::ProofVerifier& verifier)
 {
-
-    // BENCHMARK START
-    // *************************************************************
-    auto timeStart = std::chrono::steady_clock::now();
-
-    // *************************************************************
 
     // Don't count coinbase transactions because mining skews the count
     if (!tx.IsCoinBase()) {
@@ -1082,35 +1113,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state,
                 return state.DoS(100, error("CheckTransaction(): joinsplit does not verify"),
                                     REJECT_INVALID, "bad-txns-joinsplit-verification-failed");
             }
-        }
-
-        // BENCHMARK END
-        // *************************************************************
-        
-        auto timeEnd = std::chrono::steady_clock::now();
-        auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-
-        ofstream outdata;
-
-        outdata.open("data_transactions.csv", ofstream::out | ofstream::app); 
-        if (!outdata) { // file couldn't be opened
-            cerr << "Error: Benchmark data file could not be opened" << endl;
-            exit(1);
-        }
-
-        outdata << tx.GetHash().ToString().substr(0,10) << "," << tx.IsCoinBase() << "," << tx.nVersion;
-        outdata << "," << tx.vin.size() << "," << tx.vout.size();
-
-        if (tx.nVersion >= SAPLING_MIN_TX_VERSION) {
-            outdata << "," << tx.vShieldedSpend.size() << "," << tx.vShieldedOutput.size();
-        } else {
-            outdata << "," << "false" << "," << "false";
-        }
-        
-        outdata << "," << durationNano << endl;
-        outdata.close();
-        
-        // *************************************************************
+        }    
 
         return true;
     }
