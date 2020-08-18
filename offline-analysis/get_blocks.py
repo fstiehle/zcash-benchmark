@@ -53,18 +53,24 @@ def processBlock(blockNumber, blockTime, data):
   numberVin = 0
   numberVout = 0
   numberJoinSplit = 0
+  numbervShieldedSpend = 0
+  numbervShieldedOutput = 0
 
   for tx in data['tx']:
     if 'vin' in tx:
       numberVin = numberVin + len(tx['vin'])
     if 'vout' in tx:
-      numberVin = numberVin + len(tx['vin'])
+      numberVout = numberVout + len(tx['vout'])
     if 'vjoinsplit' in tx:
-      numberVin = numberVin + len(tx['vin'])
+      numberJoinSplit = numberJoinSplit + len(tx['vjoinsplit'])
+    if 'vShieldedSpend' in tx:
+      numbervShieldedSpend = numbervShieldedSpend + len(tx['vShieldedSpend'])
+    if 'vShieldedOutput' in tx:
+      numbervShieldedOutput = numbervShieldedOutput + len(tx['vShieldedOutput'])
 
   with open(outputfile, 'a', newline='') as f:
     writer = csv.writer(f)
-    writer.writerow([blockNumber, blockSize, blockVersion, numberTx, numberVin, numberVout, numberJoinSplit])
+    writer.writerow([blockNumber, blockSize, blockVersion, numberTx, numberVin, numberVout, numberJoinSplit, numbervShieldedSpend, numbervShieldedOutput])
 
 if __name__ == "__main__":
   main(sys.argv[1:])
