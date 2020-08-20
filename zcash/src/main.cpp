@@ -64,12 +64,12 @@ using std::cerr;
 using std::endl;
 
 // BENCHMARK
-std::vector<std::chrono::nanoseconds> time_malleability_hash;
-std::vector<std::chrono::nanoseconds> time_malleability_joinSplit;
-std::vector<std::chrono::nanoseconds> time_malleability_bindingSig;
-std::vector<std::chrono::nanoseconds> time_ecdsa;
-std::vector<std::chrono::nanoseconds> time_shieldedSpend;
-std::vector<std::chrono::nanoseconds> time_shieldedOutput;
+std::vector<std::chrono::system_clock::rep> time_malleability_hash;
+std::vector<std::chrono::system_clock::rep> time_malleability_joinSplit;
+std::vector<std::chrono::system_clock::rep> time_malleability_bindingSig;
+std::vector<std::chrono::system_clock::rep> time_ecdsa;
+std::vector<std::chrono::system_clock::rep> time_shieldedSpend;
+std::vector<std::chrono::system_clock::rep> time_shieldedOutput;
 
 /**
  * Global state
@@ -958,9 +958,9 @@ bool ContextualCheckTransaction(
     uint256 dataToBeSigned;
     uint256 prevDataToBeSigned;
 
-    auto std::chrono::steady_clock::time_point timeStart;
-    auto std::chrono::steady_clock::time_point timeEnd;
-    auto std::chrono::nanoseconds durationNano;
+    std::chrono::steady_clock::time_point timeStart;
+    std::chrono::steady_clock::time_point timeEnd;
+    std::chrono::system_clock::rep durationNano;
 
    // NOTES: Maleability Check Setup
 
@@ -985,7 +985,7 @@ bool ContextualCheckTransaction(
         // BENCHMARK END
         timeEnd = std::chrono::steady_clock::now();
         durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-        time_malleability_hash.push_back(durationNano)
+        time_malleability_hash.push_back(durationNano);
     }
 
   // NOTES: Maleability Check
@@ -1025,7 +1025,7 @@ bool ContextualCheckTransaction(
         // BENCHMARK END
         timeEnd = std::chrono::steady_clock::now();
         durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-        time_malleability_joinSplit.push_back(durationNano)
+        time_malleability_joinSplit.push_back(durationNano);
     }
 
   // NOTES: ZK Proof
@@ -1060,7 +1060,7 @@ bool ContextualCheckTransaction(
         // BENCHMARK END
         timeEnd = std::chrono::steady_clock::now();
         durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-        time_shieldedSpend.push_back(durationNano)
+        time_shieldedSpend.push_back(durationNano);
 
         // BENCHMARK START
         timeStart = std::chrono::steady_clock::now();
@@ -1086,7 +1086,7 @@ bool ContextualCheckTransaction(
         // BENCHMARK END
         timeEnd = std::chrono::steady_clock::now();
         durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-        time_shieldedOutput.push_back(durationNano)
+        time_shieldedOutput.push_back(durationNano);
 
         // BENCHMARK START
         timeStart = std::chrono::steady_clock::now();
@@ -1107,7 +1107,7 @@ bool ContextualCheckTransaction(
         // BENCHMARK END
         timeEnd = std::chrono::steady_clock::now();
         durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-        time_malleability_bindingSig.push_back(durationNano)
+        time_malleability_bindingSig.push_back(durationNano);
 
         librustzcash_sapling_verification_ctx_free(ctx);
     }
@@ -2289,7 +2289,7 @@ bool ContextualCheckInputs(
                 // Benchmark End
                 auto timeEnd = std::chrono::steady_clock::now();
                 auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-                time_ecdsa.push_back(durationNano)
+                time_ecdsa.push_back(durationNano);
             }
         }
     }
@@ -4367,7 +4367,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
 
     ofstream outdata;
-    std::string blockHash = pblock->GetHash().ToString();
+    auto blockHash = pblock->GetHash().ToString();
 
     // 1.) Write Block Benchmark
     outdata.open("block.csv", ofstream::out | ofstream::app); 
