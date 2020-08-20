@@ -64,10 +64,10 @@ using std::cerr;
 using std::endl;
 
 // BENCHMARK
-std::vector<std::chrono::nanoseconds time_malleability_hash;
-std::vector<std::chrono::nanoseconds time_malleability_joinSplit;
-std::vector<std::chrono::nanoseconds time_malleability_bindingSig;
-std::vector<std::chrono::nanoseconds time_ecdsa;
+std::vector<std::chrono::nanoseconds> time_malleability_hash;
+std::vector<std::chrono::nanoseconds> time_malleability_joinSplit;
+std::vector<std::chrono::nanoseconds> time_malleability_bindingSig;
+std::vector<std::chrono::nanoseconds> time_ecdsa;
 std::vector<std::chrono::nanoseconds> time_shieldedSpend;
 std::vector<std::chrono::nanoseconds> time_shieldedOutput;
 
@@ -958,6 +958,9 @@ bool ContextualCheckTransaction(
     uint256 dataToBeSigned;
     uint256 prevDataToBeSigned;
 
+    auto std::chrono::steady_clock::time_point timeStart;
+    auto std::chrono::steady_clock::time_point timeEnd;
+    auto std::chrono::nanoseconds durationNano;
 
    // NOTES: Maleability Check Setup
 
@@ -968,7 +971,7 @@ bool ContextualCheckTransaction(
 
         // Empty output script.
         // BENCHMARK START
-        auto timeStart = std::chrono::steady_clock::now();
+        timeStart = std::chrono::steady_clock::now();
         CScript scriptCode;
         try {
             dataToBeSigned = SignatureHash(scriptCode, tx, NOT_AN_INPUT, SIGHASH_ALL, 0, consensusBranchId);
@@ -980,8 +983,8 @@ bool ContextualCheckTransaction(
                                 REJECT_INVALID, "error-computing-signature-hash");
         }
         // BENCHMARK END
-        auto timeEnd = std::chrono::steady_clock::now();
-        auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+        timeEnd = std::chrono::steady_clock::now();
+        durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
         time_malleability_hash.push_back(durationNano)
     }
 
