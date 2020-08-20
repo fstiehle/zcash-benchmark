@@ -63,6 +63,14 @@ using std::ofstream;
 using std::cerr;
 using std::endl;
 
+// BENCHMARK
+std::vector<std::chrono::nanoseconds time_malleability_hash;
+std::vector<std::chrono::nanoseconds time_malleability_joinSplit;
+std::vector<std::chrono::nanoseconds time_malleability_bindingSig;
+std::vector<std::chrono::nanoseconds time_ecdsa;
+std::vector<std::chrono::nanoseconds> time_shieldedSpend;
+std::vector<std::chrono::nanoseconds> time_shieldedOutput;
+
 /**
  * Global state
  */
@@ -950,11 +958,17 @@ bool ContextualCheckTransaction(
     uint256 dataToBeSigned;
     uint256 prevDataToBeSigned;
 
+
+   // NOTES: Maleability Check Setup
+
     if (!tx.vJoinSplit.empty() ||
         !tx.vShieldedSpend.empty() ||
         !tx.vShieldedOutput.empty())
     {
+
         // Empty output script.
+        // BENCHMARK START
+        auto timeStart = std::chrono::steady_clock::now();
         CScript scriptCode;
         try {
             dataToBeSigned = SignatureHash(scriptCode, tx, NOT_AN_INPUT, SIGHASH_ALL, 0, consensusBranchId);
@@ -965,10 +979,17 @@ bool ContextualCheckTransaction(
             return state.DoS(100, error("CheckTransaction(): error computing signature hash"),
                                 REJECT_INVALID, "error-computing-signature-hash");
         }
+        // BENCHMARK END
+        auto timeEnd = std::chrono::steady_clock::now();
+        auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+        time_malleability_hash.push_back(durationNano)
     }
 
+  // NOTES: Maleability Check
     if (!tx.vJoinSplit.empty())
     {
+        // BENCHMARK START
+        timeStart = std::chrono::steady_clock::now();
         BOOST_STATIC_ASSERT(crypto_sign_PUBLICKEYBYTES == 32);
 
         // We rely on libsodium to check that the signature is canonical.
@@ -997,13 +1018,22 @@ bool ContextualCheckTransaction(
                 error("CheckTransaction(): invalid joinsplit signature"),
                 REJECT_INVALID, "bad-txns-invalid-joinsplit-signature");
         }
+
+        // BENCHMARK END
+        timeEnd = std::chrono::steady_clock::now();
+        durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+        time_malleability_joinSplit.push_back(durationNano)
     }
 
+  // NOTES: ZK Proof
     if (!tx.vShieldedSpend.empty() ||
         !tx.vShieldedOutput.empty())
     {
         auto ctx = librustzcash_sapling_verification_ctx_init();
 
+        // BENCHMARK START
+        timeStart = std::chrono::steady_clock::now();
+       
         for (const SpendDescription &spend : tx.vShieldedSpend) {
             if (!librustzcash_sapling_check_spend(
                 ctx,
@@ -1024,6 +1054,14 @@ bool ContextualCheckTransaction(
             }
         }
 
+        // BENCHMARK END
+        timeEnd = std::chrono::steady_clock::now();
+        durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+        time_shieldedSpend.push_back(durationNano)
+
+        // BENCHMARK START
+        timeStart = std::chrono::steady_clock::now();
+
         for (const OutputDescription &output : tx.vShieldedOutput) {
             if (!librustzcash_sapling_check_output(
                 ctx,
@@ -1042,6 +1080,13 @@ bool ContextualCheckTransaction(
             }
         }
 
+        // BENCHMARK END
+        timeEnd = std::chrono::steady_clock::now();
+        durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+        time_shieldedOutput.push_back(durationNano)
+
+        // BENCHMARK START
+        timeStart = std::chrono::steady_clock::now();
         if (!librustzcash_sapling_final_check(
             ctx,
             tx.valueBalance,
@@ -1055,6 +1100,11 @@ bool ContextualCheckTransaction(
                 error("ContextualCheckTransaction(): Sapling binding signature invalid"),
                 REJECT_INVALID, "bad-txns-sapling-binding-signature-invalid");
         }
+
+        // BENCHMARK END
+        timeEnd = std::chrono::steady_clock::now();
+        durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+        time_malleability_bindingSig.push_back(durationNano)
 
         librustzcash_sapling_verification_ctx_free(ctx);
     }
@@ -2154,6 +2204,7 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
 }
 }// namespace Consensus
 
+// Note:ContextualCheckInputs
 bool ContextualCheckInputs(
     const CTransaction& tx,
     CValidationState &state,
@@ -2179,11 +2230,16 @@ bool ContextualCheckInputs(
         // Only if ALL inputs pass do we perform expensive ECDSA signature checks.
         // Helps prevent CPU exhaustion attacks.
 
+        // Benchmark here
         // Skip ECDSA signature verification when connecting blocks
         // before the last block chain checkpoint. This is safe because block merkle hashes are
         // still computed and checked, and any change will be caught at the next checkpoint.
         if (fScriptChecks) {
             for (unsigned int i = 0; i < tx.vin.size(); i++) {
+                
+                // Benchmark Start
+                auto timeStart = std::chrono::steady_clock::now();
+
                 const COutPoint &prevout = tx.vin[i].prevout;
                 const CCoins* coins = inputs.AccessCoins(prevout.hash);
                 assert(coins);
@@ -2227,6 +2283,10 @@ bool ContextualCheckInputs(
                     // such nodes as they are not following the protocol.
                     return state.DoS(100,false, REJECT_INVALID, strprintf("mandatory-script-verify-flag-failed (%s)", ScriptErrorString(check.GetScriptError())));
                 }
+                // Benchmark End
+                auto timeEnd = std::chrono::steady_clock::now();
+                auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+                time_ecdsa.push_back(durationNano)
             }
         }
     }
@@ -2633,6 +2693,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     auto disabledVerifier = libzcash::ProofVerifier::Disabled();
 
     // Check it again to verify JoinSplit proofs, and in case a previous version let a bad block in
+    // Notes: Zk-Proof JoinSplit, Idea: log all and only log if verifier enabled
     if (!CheckBlock(block, state, chainparams, fExpensiveChecks ? verifier : disabledVerifier, !fJustCheck, !fJustCheck))
         return false;
 
@@ -2812,6 +2873,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
             std::vector<CScriptCheck> vChecks;
             bool fCacheResults = fJustCheck; /* Don't cache results if we're actually connecting blocks (still consult the cache, though) */
+            // NOTES: ECDSA Check
             if (!ContextualCheckInputs(tx, state, view, fExpensiveChecks, flags, fCacheResults, txdata[i], chainparams.GetConsensus(), consensusBranchId, nScriptCheckThreads ? &vChecks : NULL))
                 return false;
             control.Add(vChecks);
@@ -4302,14 +4364,93 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
 
     ofstream outdata;
+    std::string blockHash = pblock->GetHash().ToString();
 
-    outdata.open("data.csv", ofstream::out | ofstream::app); 
+    // 1.) Write Block Benchmark
+    outdata.open("block.csv", ofstream::out | ofstream::app); 
+    if (!outdata) { // file couldn't be opened
+        cerr << "Error: Benchmark data file could not be opened" << endl;
+        exit(1);
+    }
+    outdata << blockHash << "," << durationNano << endl;
+    outdata.close();
+
+    // 2.) Write Malleability
+    outdata.open("malleability_hash.csv", ofstream::out | ofstream::app); 
     if (!outdata) { // file couldn't be opened
         cerr << "Error: Benchmark data file could not be opened" << endl;
         exit(1);
     }
 
-    outdata << pblock->GetHash().ToString() << "," << durationNano << endl;
+    for (auto const& timing : time_malleability_hash)
+    {  
+      outdata << blockHash << "," << timing << endl; 
+    }
+    outdata.close();
+
+    // 2.) Write Malleability JoinSplit
+    outdata.open("time_malleability_joinSplit.csv", ofstream::out | ofstream::app); 
+    if (!outdata) { // file couldn't be opened
+        cerr << "Error: Benchmark data file could not be opened" << endl;
+        exit(1);
+    }
+
+    for (auto const& timing : time_malleability_joinSplit)
+    {  
+      outdata << blockHash << "," << timing << endl; 
+    }    
+    outdata.close();
+
+    // 3.) Write Malleability bindingSig
+    outdata.open("time_malleability_bindingSig", ofstream::out | ofstream::app); 
+    if (!outdata) { // file couldn't be opened
+        cerr << "Error: Benchmark data file could not be opened" << endl;
+        exit(1);
+    }
+
+    for (auto const& timing : time_malleability_bindingSig)
+    {  
+      outdata << blockHash << "," << timing << endl; 
+    }    
+    outdata.close();
+
+    // 4.) Write ECDSA
+    outdata.open("time_ecdsa", ofstream::out | ofstream::app); 
+    if (!outdata) { // file couldn't be opened
+        cerr << "Error: Benchmark data file could not be opened" << endl;
+        exit(1);
+    }
+
+    for (auto const& timing : time_ecdsa)
+    {  
+      outdata << blockHash << "," << timing << endl; 
+    }    
+    outdata.close();
+
+    // 5.) Write shieldedSpend
+    outdata.open("time_shieldedSpend", ofstream::out | ofstream::app); 
+    if (!outdata) { // file couldn't be opened
+        cerr << "Error: Benchmark data file could not be opened" << endl;
+        exit(1);
+    }
+
+    for (auto const& timing : time_shieldedSpend)
+    {  
+      outdata << blockHash << "," << timing << endl; 
+    }    
+    outdata.close();
+
+    // 6.) Write shieldedSpend
+    outdata.open("time_shieldedOutput", ofstream::out | ofstream::app); 
+    if (!outdata) { // file couldn't be opened
+        cerr << "Error: Benchmark data file could not be opened" << endl;
+        exit(1);
+    }
+
+    for (auto const& timing : time_shieldedOutput)
+    {  
+      outdata << blockHash << "," << timing << endl; 
+    }
     outdata.close();
     // *************************************************************
 
