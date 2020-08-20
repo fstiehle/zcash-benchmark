@@ -43,6 +43,10 @@ def main(argv):
         "Content-Type": "text/plain"
     }
     response = requests.post(CLIENT_URL, json=payload, headers={"Content-Type": "text/plain"}, auth=("bitcoin", "bitcoin")).json()
+    if (response['error']):
+      print(response['error']['message'], ": ",  blockNumber)
+      continue
+
     processBlock(blockNumber, blockTime, response['result'])
 
 def processBlock(blockNumber, blockTime, data):
