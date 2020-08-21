@@ -973,6 +973,7 @@ bool ContextualCheckTransaction(
         // Empty output script.
         // BENCHMARK START
         timeStart = std::chrono::steady_clock::now();
+
         CScript scriptCode;
         try {
             dataToBeSigned = SignatureHash(scriptCode, tx, NOT_AN_INPUT, SIGHASH_ALL, 0, consensusBranchId);
@@ -994,6 +995,7 @@ bool ContextualCheckTransaction(
     {
         // BENCHMARK START
         timeStart = std::chrono::steady_clock::now();
+        
         BOOST_STATIC_ASSERT(crypto_sign_PUBLICKEYBYTES == 32);
 
         // We rely on libsodium to check that the signature is canonical.
@@ -1117,7 +1119,7 @@ bool ContextualCheckTransaction(
 
 
 bool CheckTransaction(const CTransaction& tx, CValidationState &state,
-                      libzcash::ProofVerifier& verifier)
+                      libzcash::ProofVerifier& verifier, bool bench)
 {
     // Don't count coinbase transactions because mining skews the count
     if (!tx.IsCoinBase()) {
@@ -1127,12 +1129,24 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state,
     if (!CheckTransactionWithoutProofVerification(tx, state)) {
         return false;
     } else {
+        // Benchmark  Start
+        if(bench) {
+          auto timeStart = std::chrono::steady_clock::now();
+        }
+
         // Ensure that zk-SNARKs verify
         BOOST_FOREACH(const JSDescription &joinsplit, tx.vJoinSplit) {
             if (!joinsplit.Verify(*pzcashParams, verifier, tx.joinSplitPubKey)) {
                 return state.DoS(100, error("CheckTransaction(): joinsplit does not verify"),
                                     REJECT_INVALID, "bad-txns-joinsplit-verification-failed");
             }
+        }
+
+        // Benchmark End
+        if(bench) {
+          auto timeEnd = std::chrono::steady_clock::now();
+          auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+          time_joinSplit.push_back(durationNano);
         }
         return true;
     }
@@ -2698,8 +2712,8 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     // Check it again to verify JoinSplit proofs, and in case a previous version let a bad block in
     // Notes: Zk-Proof JoinSplit, Idea: log all and only log if verifier enabled
-    if (!CheckBlock(block, state, chainparams, fExpensiveChecks ? verifier : disabledVerifier, !fJustCheck, !fJustCheck))
-        return false;
+    if (!CheckBlock(block, state, chainparams, fExpensiveChecks ? verifier : disabledVerifier, !fJustCheck, !fJustCheck, true))
+        return false;    
 
     // verify that the view's current state corresponds to the previous block
     uint256 hashPrevBlock = pindex->pprev == NULL ? uint256() : pindex->pprev->GetBlockHash();
@@ -4003,7 +4017,7 @@ bool CheckBlockHeader(
 bool CheckBlock(const CBlock& block, CValidationState& state,
                 const CChainParams& chainparams,
                 libzcash::ProofVerifier& verifier,
-                bool fCheckPOW, bool fCheckMerkleRoot)
+                bool fCheckPOW, bool fCheckMerkleRoot, bool bench)
 {
     // These are checks that are independent of context.
 
@@ -4048,7 +4062,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state,
 
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, block.vtx)
-        if (!CheckTransaction(tx, state, verifier))
+        if (!CheckTransaction(tx, state, verifier, bench))
             return error("CheckBlock(): CheckTransaction failed");
 
     unsigned int nSigOps = 0;
