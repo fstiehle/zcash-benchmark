@@ -68,6 +68,7 @@ std::vector<std::chrono::system_clock::rep> time_malleability_hash;
 std::vector<std::chrono::system_clock::rep> time_malleability_joinSplit;
 std::vector<std::chrono::system_clock::rep> time_malleability_bindingSig;
 std::vector<std::chrono::system_clock::rep> time_ecdsa;
+std::vector<std::chrono::system_clock::rep> time_joinSplit;
 std::vector<std::chrono::system_clock::rep> time_shieldedSpend;
 std::vector<std::chrono::system_clock::rep> time_shieldedOutput;
 
@@ -4370,7 +4371,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     auto blockHash = pblock->GetHash().ToString();
 
     // 1.) Write Block Benchmark
-    outdata.open("block.csv", ofstream::out | ofstream::app); 
+    outdata.open("data_block.csv", ofstream::out | ofstream::app); 
     if (!outdata) { // file couldn't be opened
         cerr << "Error: Benchmark data file could not be opened" << endl;
         exit(1);
@@ -4379,7 +4380,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     outdata.close();
 
     // 2.) Write Malleability
-    outdata.open("malleability_hash.csv", ofstream::out | ofstream::app); 
+    outdata.open("data_malleability_hash.csv", ofstream::out | ofstream::app); 
     if (!outdata) { // file couldn't be opened
         cerr << "Error: Benchmark data file could not be opened" << endl;
         exit(1);
@@ -4392,7 +4393,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     outdata.close();
 
     // 2.) Write Malleability JoinSplit
-    outdata.open("time_malleability_joinSplit.csv", ofstream::out | ofstream::app); 
+    outdata.open("data_malleability_joinSplit.csv", ofstream::out | ofstream::app); 
     if (!outdata) { // file couldn't be opened
         cerr << "Error: Benchmark data file could not be opened" << endl;
         exit(1);
@@ -4405,7 +4406,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     outdata.close();
 
     // 3.) Write Malleability bindingSig
-    outdata.open("time_malleability_bindingSig", ofstream::out | ofstream::app); 
+    outdata.open("data_malleability_bindingSig.csv", ofstream::out | ofstream::app); 
     if (!outdata) { // file couldn't be opened
         cerr << "Error: Benchmark data file could not be opened" << endl;
         exit(1);
@@ -4418,7 +4419,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     outdata.close();
 
     // 4.) Write ECDSA
-    outdata.open("time_ecdsa", ofstream::out | ofstream::app); 
+    outdata.open("data_ecdsa.csv", ofstream::out | ofstream::app); 
     if (!outdata) { // file couldn't be opened
         cerr << "Error: Benchmark data file could not be opened" << endl;
         exit(1);
@@ -4431,7 +4432,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     outdata.close();
 
     // 5.) Write shieldedSpend
-    outdata.open("time_shieldedSpend", ofstream::out | ofstream::app); 
+    outdata.open("data_shieldedSpend.csv", ofstream::out | ofstream::app); 
     if (!outdata) { // file couldn't be opened
         cerr << "Error: Benchmark data file could not be opened" << endl;
         exit(1);
@@ -4444,7 +4445,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     outdata.close();
 
     // 6.) Write shieldedSpend
-    outdata.open("time_shieldedOutput", ofstream::out | ofstream::app); 
+    outdata.open("data_shieldedOutput.csv", ofstream::out | ofstream::app); 
     if (!outdata) { // file couldn't be opened
         cerr << "Error: Benchmark data file could not be opened" << endl;
         exit(1);
