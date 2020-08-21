@@ -995,7 +995,7 @@ bool ContextualCheckTransaction(
     {
         // BENCHMARK START
         timeStart = std::chrono::steady_clock::now();
-        
+
         BOOST_STATIC_ASSERT(crypto_sign_PUBLICKEYBYTES == 32);
 
         // We rely on libsodium to check that the signature is canonical.
@@ -1121,6 +1121,8 @@ bool ContextualCheckTransaction(
 bool CheckTransaction(const CTransaction& tx, CValidationState &state,
                       libzcash::ProofVerifier& verifier, bool bench)
 {
+    std::chrono::steady_clock::time_point timeStart;
+
     // Don't count coinbase transactions because mining skews the count
     if (!tx.IsCoinBase()) {
         transactionsValidated.increment();
@@ -1131,7 +1133,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state,
     } else {
         // Benchmark  Start
         if(bench) {
-          auto timeStart = std::chrono::steady_clock::now();
+          timeStart = std::chrono::steady_clock::now();
         }
 
         // Ensure that zk-SNARKs verify
