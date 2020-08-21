@@ -72,6 +72,8 @@ std::vector<std::chrono::system_clock::rep> time_joinSplit;
 std::vector<std::chrono::system_clock::rep> time_shieldedSpend;
 std::vector<std::chrono::system_clock::rep> time_shieldedOutput;
 
+auto benchMinHeight = 525000;
+
 /**
  * Global state
  */
@@ -4382,96 +4384,121 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     // *************************************************************
     auto timeEnd = std::chrono::steady_clock::now();
     auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+    auto blockHash = pblock->GetHash().ToString();  
 
-    ofstream outdata;
-    auto blockHash = pblock->GetHash().ToString();
+    if ( GetHeight() > benchMinHeight ) {
 
-    // 1.) Write Block Benchmark
-    outdata.open("data_block.csv", ofstream::out | ofstream::app); 
-    if (!outdata) { // file couldn't be opened
-        cerr << "Error: Benchmark data file could not be opened" << endl;
-        exit(1);
+      ofstream outdata;   
+
+      // 1.) Write Block Benchmark
+      outdata.open("data_block.csv", ofstream::out | ofstream::app); 
+      if (!outdata) { // file couldn't be opened
+          cerr << "Error: Benchmark data file could not be opened" << endl;
+          exit(1);
+      }
+      outdata << blockHash << "," << durationNano << endl;
+      outdata.close();
+
+      // 2.) Write Malleability
+      outdata.open("data_malleability_hash.csv", ofstream::out | ofstream::app); 
+      if (!outdata) { // file couldn't be opened
+          cerr << "Error: Benchmark data file could not be opened" << endl;
+          exit(1);
+      }
+
+      for (auto const& timing : time_malleability_hash)
+      {  
+        outdata << blockHash << "," << timing << endl; 
+      }
+      outdata.close();
+
+      // 2.) Write Malleability JoinSplit
+      outdata.open("data_malleability_joinSplit.csv", ofstream::out | ofstream::app); 
+      if (!outdata) { // file couldn't be opened
+          cerr << "Error: Benchmark data file could not be opened" << endl;
+          exit(1);
+      }
+
+      for (auto const& timing : time_malleability_joinSplit)
+      {  
+        outdata << blockHash << "," << timing << endl; 
+      }    
+      outdata.close();
+
+      // 3.) Write Malleability bindingSig
+      outdata.open("data_malleability_bindingSig.csv", ofstream::out | ofstream::app); 
+      if (!outdata) { // file couldn't be opened
+          cerr << "Error: Benchmark data file could not be opened" << endl;
+          exit(1);
+      }
+
+      for (auto const& timing : time_malleability_bindingSig)
+      {  
+        outdata << blockHash << "," << timing << endl; 
+      }    
+      outdata.close();
+
+      // 4.) Write ECDSA
+      outdata.open("data_ecdsa.csv", ofstream::out | ofstream::app); 
+      if (!outdata) { // file couldn't be opened
+          cerr << "Error: Benchmark data file could not be opened" << endl;
+          exit(1);
+      }
+
+      for (auto const& timing : time_ecdsa)
+      {  
+        outdata << blockHash << "," << timing << endl; 
+      }    
+      outdata.close();
+
+      // 5.) Write shieldedSpend
+      outdata.open("data_shieldedSpend.csv", ofstream::out | ofstream::app); 
+      if (!outdata) { // file couldn't be opened
+          cerr << "Error: Benchmark data file could not be opened" << endl;
+          exit(1);
+      }
+
+      for (auto const& timing : time_shieldedSpend)
+      {  
+        outdata << blockHash << "," << timing << endl; 
+      }    
+      outdata.close();
+
+      // 6.) Write shieldedSpend
+      outdata.open("data_shieldedOutput.csv", ofstream::out | ofstream::app); 
+      if (!outdata) { // file couldn't be opened
+          cerr << "Error: Benchmark data file could not be opened" << endl;
+          exit(1);
+      }
+
+      for (auto const& timing : time_shieldedOutput)
+      {  
+        outdata << blockHash << "," << timing << endl; 
+      }
+      outdata.close();
+
+      // 7.) Write joinSplits
+      outdata.open("data_joinsplit.csv", ofstream::out | ofstream::app); 
+      if (!outdata) { // file couldn't be opened
+          cerr << "Error: Benchmark data file could not be opened" << endl;
+          exit(1);
+      }
+
+      for (auto const& timing : time_shieldedOutput)
+      {  
+        outdata << blockHash << "," << timing << endl; 
+      }
+      outdata.close();
+
     }
-    outdata << blockHash << "," << durationNano << endl;
-    outdata.close();
 
-    // 2.) Write Malleability
-    outdata.open("data_malleability_hash.csv", ofstream::out | ofstream::app); 
-    if (!outdata) { // file couldn't be opened
-        cerr << "Error: Benchmark data file could not be opened" << endl;
-        exit(1);
-    }
-
-    for (auto const& timing : time_malleability_hash)
-    {  
-      outdata << blockHash << "," << timing << endl; 
-    }
-    outdata.close();
-
-    // 2.) Write Malleability JoinSplit
-    outdata.open("data_malleability_joinSplit.csv", ofstream::out | ofstream::app); 
-    if (!outdata) { // file couldn't be opened
-        cerr << "Error: Benchmark data file could not be opened" << endl;
-        exit(1);
-    }
-
-    for (auto const& timing : time_malleability_joinSplit)
-    {  
-      outdata << blockHash << "," << timing << endl; 
-    }    
-    outdata.close();
-
-    // 3.) Write Malleability bindingSig
-    outdata.open("data_malleability_bindingSig.csv", ofstream::out | ofstream::app); 
-    if (!outdata) { // file couldn't be opened
-        cerr << "Error: Benchmark data file could not be opened" << endl;
-        exit(1);
-    }
-
-    for (auto const& timing : time_malleability_bindingSig)
-    {  
-      outdata << blockHash << "," << timing << endl; 
-    }    
-    outdata.close();
-
-    // 4.) Write ECDSA
-    outdata.open("data_ecdsa.csv", ofstream::out | ofstream::app); 
-    if (!outdata) { // file couldn't be opened
-        cerr << "Error: Benchmark data file could not be opened" << endl;
-        exit(1);
-    }
-
-    for (auto const& timing : time_ecdsa)
-    {  
-      outdata << blockHash << "," << timing << endl; 
-    }    
-    outdata.close();
-
-    // 5.) Write shieldedSpend
-    outdata.open("data_shieldedSpend.csv", ofstream::out | ofstream::app); 
-    if (!outdata) { // file couldn't be opened
-        cerr << "Error: Benchmark data file could not be opened" << endl;
-        exit(1);
-    }
-
-    for (auto const& timing : time_shieldedSpend)
-    {  
-      outdata << blockHash << "," << timing << endl; 
-    }    
-    outdata.close();
-
-    // 6.) Write shieldedSpend
-    outdata.open("data_shieldedOutput.csv", ofstream::out | ofstream::app); 
-    if (!outdata) { // file couldn't be opened
-        cerr << "Error: Benchmark data file could not be opened" << endl;
-        exit(1);
-    }
-
-    for (auto const& timing : time_shieldedOutput)
-    {  
-      outdata << blockHash << "," << timing << endl; 
-    }
-    outdata.close();
+    time_malleability_hash.clear();
+    time_malleability_joinSplit.clear();
+    time_malleability_bindingSig.clear();
+    time_ecdsa.clear();
+    time_joinSplit.clear();
+    time_shieldedSpend.clear();
+    time_shieldedOutput.clear();
     // *************************************************************
 
     return true;
