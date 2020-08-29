@@ -71,6 +71,7 @@ std::vector<std::chrono::system_clock::rep> time_ecdsa;
 std::vector<std::chrono::system_clock::rep> time_joinSplit;
 std::vector<std::chrono::system_clock::rep> time_shieldedSpend;
 std::vector<std::chrono::system_clock::rep> time_shieldedOutput;
+std::vector<std::chrono::system_clock::rep> time_disk;
 
 auto benchMinHeight = 525000;
 
@@ -3356,8 +3357,17 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
     int64_t nTime4 = GetTimeMicros(); nTimeFlush += nTime4 - nTime3;
     LogPrint("bench", "  - Flush: %.2fms [%.2fs]\n", (nTime4 - nTime3) * 0.001, nTimeFlush * 0.000001);
     // Write the chain state to disk, if necessary.
+    // BENCHMARK START
+    auto timeStart = std::chrono::steady_clock::now();
+
     if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED))
         return false;
+
+    // BENCHMARK END
+    auto timeEnd = std::chrono::steady_clock::now();
+    auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+    time_disk.push_back(durationNano);
+   
     int64_t nTime5 = GetTimeMicros(); nTimeChainState += nTime5 - nTime4;
     LogPrint("bench", "  - Writing chainstate: %.2fms [%.2fs]\n", (nTime5 - nTime4) * 0.001, nTimeChainState * 0.000001);
     // Remove conflicting transactions from the mempool.
@@ -3518,6 +3528,9 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
         return false;
     }
 
+    // BENCHMARK START
+    auto timeStart = std::chrono::steady_clock::now();
+
     // Disconnect active blocks which are no longer in the best chain.
     bool fBlocksDisconnected = false;
     while (chainActive.Tip() && chainActive.Tip() != pindexFork) {
@@ -3525,6 +3538,12 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
             return false;
         fBlocksDisconnected = true;
     }
+
+    // BENCHMARK END
+    auto timeEnd = std::chrono::steady_clock::now();
+    auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+    time_disk.push_back(durationNano);
+    
 
     // Build list of new blocks to connect.
     std::vector<CBlockIndex*> vpindexToConnect;
@@ -3645,10 +3664,19 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
     } while(pindexMostWork != chainActive.Tip());
     CheckBlockIndex(chainparams.GetConsensus());
 
+    // BENCHMARK START
+    auto timeStart = std::chrono::steady_clock::now();
+
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
         return false;
     }
+
+    // BENCHMARK END
+    auto timeEnd = std::chrono::steady_clock::now();
+    auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+    auto time_disk.push_back(durationNano);
+    
 
     return true;
 }
@@ -4310,6 +4338,7 @@ static bool AcceptBlock(const CBlock& block, CValidationState& state, const CCha
 
     int nHeight = pindex->nHeight;
 
+    // Note: DiskWrite
     // Write block to history file
     try {
         unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
@@ -4327,9 +4356,18 @@ static bool AcceptBlock(const CBlock& block, CValidationState& state, const CCha
         return AbortNode(state, std::string("System error: ") + e.what());
     }
 
-    if (fCheckForPruning)
-        FlushStateToDisk(state, FLUSH_STATE_NONE); // we just allocated more disk space for block files
+    if (fCheckForPruning) {
+      // BENCHMARK START
+      auto timeStart = std::chrono::steady_clock::now();
 
+      FlushStateToDisk(state, FLUSH_STATE_NONE); // we just allocated more disk space for block files
+    
+      // BENCHMARK END
+      auto timeEnd = std::chrono::steady_clock::now();
+      auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+      time_disk.push_back(durationNano);
+    }
+        
     return true;
 }
 
