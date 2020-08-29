@@ -3675,7 +3675,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
     // BENCHMARK END
     auto timeEnd = std::chrono::steady_clock::now();
     auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-    auto time_disk.push_back(durationNano);
+    time_disk.push_back(durationNano);
     
 
     return true;
