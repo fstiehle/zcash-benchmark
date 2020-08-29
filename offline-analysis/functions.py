@@ -1,4 +1,4 @@
-import statistics
+import statistics as stat
 import pandas as pd
 
 def group_by_block(df, block_index=1, time_index=2):
@@ -11,9 +11,9 @@ def median_percent_of_block(sum_timings, blocks, block_index=1, time_index=2):
         block_hash = item[block_index]
         block_time = item[time_index]
         try:
-            item_time = sum_timings.loc[block_hash]['NS']
-            median_percent = median(item_time) * 100 / block_time
-            data[block_hash] = mean_percent
+            item_time = sum_timings.loc[block_hash]
+            median_percent = stat.median(item_time) * 100 / block_time
+            data[block_hash] = median_percent
         except KeyError:
             continue
 
@@ -29,7 +29,7 @@ def total_percent_of_block(sum_timings, blocks, block_index=1, time_index=2):
       data[block_hash] = 0
       for summed in sum_timings:
           try:
-              item_time = sum(summed.loc[block_hash]['NS'])      
+              item_time = sum(summed.loc[block_hash])      
               data[block_hash] = data[block_hash] + item_time
           except KeyError:
               continue
