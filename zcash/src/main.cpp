@@ -1039,11 +1039,11 @@ bool ContextualCheckTransaction(
         !tx.vShieldedOutput.empty())
     {
         auto ctx = librustzcash_sapling_verification_ctx_init();
-
-        // BENCHMARK START
-        timeStart = std::chrono::steady_clock::now();
        
         for (const SpendDescription &spend : tx.vShieldedSpend) {
+            // BENCHMARK START
+            timeStart = std::chrono::steady_clock::now();
+
             if (!librustzcash_sapling_check_spend(
                 ctx,
                 spend.cv.begin(),
@@ -1061,17 +1061,17 @@ bool ContextualCheckTransaction(
                     error("ContextualCheckTransaction(): Sapling spend description invalid"),
                     REJECT_INVALID, "bad-txns-sapling-spend-description-invalid");
             }
-        }
 
-        // BENCHMARK END
-        timeEnd = std::chrono::steady_clock::now();
-        durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-        time_shieldedSpend.push_back(durationNano);
-
-        // BENCHMARK START
-        timeStart = std::chrono::steady_clock::now();
+            // BENCHMARK END
+            timeEnd = std::chrono::steady_clock::now();
+            durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+            time_shieldedSpend.push_back(durationNano);
+        }          
 
         for (const OutputDescription &output : tx.vShieldedOutput) {
+            // BENCHMARK START
+            timeStart = std::chrono::steady_clock::now();
+
             if (!librustzcash_sapling_check_output(
                 ctx,
                 output.cv.begin(),
@@ -1087,12 +1087,12 @@ bool ContextualCheckTransaction(
                 return state.DoS(100, error("ContextualCheckTransaction(): Sapling output description invalid"),
                                       REJECT_INVALID, "bad-txns-sapling-output-description-invalid");
             }
-        }
 
-        // BENCHMARK END
-        timeEnd = std::chrono::steady_clock::now();
-        durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-        time_shieldedOutput.push_back(durationNano);
+            // BENCHMARK END
+            timeEnd = std::chrono::steady_clock::now();
+            durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+            time_shieldedOutput.push_back(durationNano);
+        }
 
         // BENCHMARK START
         timeStart = std::chrono::steady_clock::now();
