@@ -4522,7 +4522,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
           exit(1);
       }
 
-      for (auto const& timing : time_shieldedOutput)
+      for (auto const& timing : time_joinSplit)
       {  
         outdata << blockHash << "," << timing << endl; 
       }
@@ -4537,6 +4537,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
     time_joinSplit.clear();
     time_shieldedSpend.clear();
     time_shieldedOutput.clear();
+    time_disk.clear();
     // *************************************************************
 
     return true;
