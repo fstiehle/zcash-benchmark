@@ -74,7 +74,7 @@ def processBlock(blockNumber, blockTime, data):
 
   with open(outputfile, 'a', newline='') as f:
     writer = csv.writer(f)
-    writer.writerow([blockNumber, blockSize, blockVersion, numberTx, numberVin, numberVout, numberJoinSplit, numbervShieldedSpend, numbervShieldedOutput])
+    writer.writerow([blockNumber, blockSize, blockVersion, numberTx, numberVin, numberVout, numberJoinSplit, numbervShieldedSpend, numbervShieldedOutput, blockTime])
 
 if __name__ == "__main__":
   main(sys.argv[1:])
