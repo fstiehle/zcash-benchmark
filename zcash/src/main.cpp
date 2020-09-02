@@ -4388,6 +4388,14 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
 {
     // BENCHMARK START
     // *************************************************************
+    time_malleability_hash.clear();
+    time_malleability_joinSplit.clear();
+    time_malleability_bindingSig.clear();
+    time_ecdsa.clear();
+    time_joinSplit.clear();
+    time_shieldedSpend.clear();
+    time_shieldedOutput.clear();
+    time_disk.clear();
     
     auto timeStart = std::chrono::steady_clock::now();
     // *************************************************************
@@ -4563,16 +4571,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, c
         }
         outdata.close();
 
-      }
-
-      time_malleability_hash.clear();
-      time_malleability_joinSplit.clear();
-      time_malleability_bindingSig.clear();
-      time_ecdsa.clear();
-      time_joinSplit.clear();
-      time_shieldedSpend.clear();
-      time_shieldedOutput.clear();
-      time_disk.clear();
+      }      
 
     }
     // *************************************************************
