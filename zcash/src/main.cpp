@@ -1134,25 +1134,26 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state,
     if (!CheckTransactionWithoutProofVerification(tx, state)) {
         return false;
     } else {
-        // Benchmark  Start
-        if(bench) {
-          timeStart = std::chrono::steady_clock::now();
-        }
-
         // Ensure that zk-SNARKs verify
         BOOST_FOREACH(const JSDescription &joinsplit, tx.vJoinSplit) {
+
+            // Benchmark  Start
+            if(bench) {
+              timeStart = std::chrono::steady_clock::now();
+            }
+
             if (!joinsplit.Verify(*pzcashParams, verifier, tx.joinSplitPubKey)) {
                 return state.DoS(100, error("CheckTransaction(): joinsplit does not verify"),
                                     REJECT_INVALID, "bad-txns-joinsplit-verification-failed");
             }
-        }
 
-        // Benchmark End
-        if(bench) {
-          auto timeEnd = std::chrono::steady_clock::now();
-          auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
-          time_joinSplit.push_back(durationNano);
-        }
+            // Benchmark End
+            if(bench) {
+              auto timeEnd = std::chrono::steady_clock::now();
+              auto durationNano = std::chrono::duration_cast<std::chrono::nanoseconds>( timeEnd - timeStart ).count();
+              time_joinSplit.push_back(durationNano);
+            }
+        }        
         return true;
     }
 }
