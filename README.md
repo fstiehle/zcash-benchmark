@@ -1,7 +1,7 @@
 # zcash-benchmark
 Zcash - Verification Benchmark
 
-Block verification benchmark of the Zcash client 3.0 and evaluation. 
+Block verification benchmark `/benchmark-client` of the Zcash client 3.0 and evaluation `/offline-analysis`. 
 
 ## Run the benchmark
 
