@@ -1,7 +1,7 @@
 # zcash-benchmark
 Zcash - Verification Benchmark
 
-Block verification benchmark `/benchmark-client` of the Zcash client 3.0 and evaluation `/offline-analysis`. See our [report](https://github.com/fstiehle/zcash-benchmark/blob/crypto_bench/report.pdf) for more info. 
+Block verification benchmark `/benchmark-client` of the Zcash client 3.0 and evaluation `/offline-analysis`. See our [report](https://github.com/fstiehle/zcash-benchmark/blob/crypto_bench/paper.pdf) for more info. 
 
 ## Run the benchmark
 
