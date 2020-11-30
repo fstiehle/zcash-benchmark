@@ -38,3 +38,17 @@ def mean_absolute_error_percent(y_true, y_pred):
 
 def median_absolute_error_percent(y_true, y_pred):
   return median_absolute_error(y_true, y_pred) / y_true.median() * 100
+
+# From: https://gist.github.com/powerlim2/5622563
+def adj_r2_score(model,y,yhat):
+  """Adjusted R square — put fitted linear model, y value, estimated y value in order
+  
+    Example:
+    In [142]: metrics.r2_score(diabetes_y_train,yhat)
+    Out[142]: 0.51222621477934993
+
+    In [144]: adj_r2_score(lm,diabetes_y_train,yhat)
+    Out[144]: 0.50035823946984515"""
+  from sklearn import metrics
+  adj = 1 - float(len(y)-1)/(len(y)-len(model.coef_)-1)*(1 - metrics.r2_score(y,yhat))
+  return adj
