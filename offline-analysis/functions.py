@@ -35,6 +35,9 @@ def subset_by_iqr(df, column, whisker_width=1.5):
 def mean_absolute_error_percent(y_true, y_pred):
   return mean_absolute_error(y_true, y_pred) / y_true.mean() * 100
 
+def max_error(y_true, y_pred):
+  errors = y_true - y_pred
+  return errors.max()
 
 def median_absolute_error_percent(y_true, y_pred):
   return median_absolute_error(y_true, y_pred) / y_true.median() * 100
