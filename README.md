@@ -30,6 +30,8 @@ See the annotated python notebooks `/offline-analysis/evaluation.py` for our mod
 
 ## Repeat the benchmark
 
+The benchmark is implemented in `zcash/src/main.cpp`.
+
 Allow at least 4GB of RAM. As the benchmark is run inside a docker container, basic familarity with docker is required. Execute the following commands:
 
 `docker build -t zcash`
