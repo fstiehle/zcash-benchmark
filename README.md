@@ -3,7 +3,7 @@ Zcash - Verification Benchmark
 
 Block verification benchmark `/benchmark-client` of the Zcash client 3.0 and evaluation `/offline-analysis`.
 
-## Data
+# Data
 
 The raw data is contained in `/offline-analysis/raw_data`, and is zipped. It contains results of benchmarks run on two systems, _HDD_ and _SSD_, for short. 
 
@@ -28,11 +28,11 @@ The file `/offline-analysis/data/enhanced_block.csv` contains the following colu
 
 See the annotated python notebooks `/offline-analysis/evaluation.py` for our model evaluation, `/offline-analysis/benchmark_analysis.py` for an explorative analysis of our benchmars, and `/offline-analysis/topology.py` for an analysis of the transaction topology of zcash.
 
-## Repeat the benchmark
+# Repeat the benchmark
 
 The benchmark is implemented in `zcash/src/main.cpp`.
 
-Allow at least 4GB of RAM. As the benchmark is run inside a docker container, basic familarity with docker is required. Execute the following commands:
+Allow at least 4GB of RAM. As the benchmark is run inside a docker container, basic familarity with docker is required. In `benchmark-client` execute the following commands:
 
 `docker build -t zcash`
 
