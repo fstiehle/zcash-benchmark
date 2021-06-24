@@ -11,10 +11,10 @@ The raw data is contained in `/offline-analysis/raw_data`, and is zipped. It con
 |------------|-----------------------------|-----------------------------|
 | Cores      | 2                           | 6                           |
 | Processor  | Intel Core i5               | AMD Ryzen 5 2600X           |
-| Clock rate | $2.6\,GHz$                  | $3.60\,GHz$                 |
-| RAM, SWAP  | $5\,GB$, $2\,GB$            | $12\,GB$, $2\,GB$           |
-| Disk       | WD Elements\newline USB 3.0 | Samsung\newline SSD 860 Evo |
-| Disk I/O   | 100\,MB/s                   | 540\,MB/s                   |
+| Clock rate | 2.6 GHz                     | 3.60 GHz                 |
+| RAM, SWAP  | 5 GB, 2 GB                  | 12 GB, 2 GB           |
+| Disk       | WD Elements USB 3.0        | Samsung SSD 860 Evo |
+| Disk I/O   | 100 MB/s                   | 540 MB/s                   |
 
 The archives contain entries for a benchmark timing the entire block verification time in `data_block.csv`. This amounts to the time the client processes the `ProcessNewBlock` function in `/zcash/src/main.cpp` during synchronization with the network. It also contains benchmarks of more fine grained operations, `data_ecdsa.csv` which captures signature checks in transparent transactions, `data_joinsplit.csv`, `data_shieldedOutput.csv`, `data_shieldedSpend.csv`, which captures the zero-knowledge proofs. All files follow the same scheme: `column1: block hash`, `column2: time in nanoseconds`. 
 
